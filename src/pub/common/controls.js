@@ -8,11 +8,9 @@ import {withRouter} from 'react-router-dom';
 import classnames from 'classnames';
 import {Netmask} from 'netmask';
 import {Typeahead} from 'react-bootstrap-typeahead';
-import codemirror from 'codemirror/lib/codemirror';
-import 'codemirror/mode/javascript/javascript';
-import 'codemirror/lib/codemirror.css';
 import zurl from '../../../util/url.js';
 import {Ext_tooltip} from '../common.js';
+import {Json_editor} from './editor/';
 import Tooltip from './tooltip.js';
 import {T} from './i18n.js';
 import Zone_description from './zone_desc.js';
@@ -466,19 +464,12 @@ export class Regex extends Pure_component {
 
 export class Json extends Pure_component {
     state = {};
-    componentDidMount(){
-        this.cm = codemirror.fromTextArea(this.textarea, {mode: 'javascript'});
-        this.cm.on('change', this.on_cm_change);
-        this.cm.setSize('auto', '100%');
-        this.cm.doc.setValue(this.props.val);
-    }
-    on_cm_change = cm=>{
-        const new_val = cm.doc.getValue();
+    on_cm_change = val=>{
         let correct = true;
-        try { JSON.parse(new_val); }
+        try { JSON.parse(val); }
         catch(e){ correct = false; }
         if (correct)
-            this.props.on_change_wrapper(new_val);
+            this.props.on_change_wrapper(val);
         this.setState({correct});
     };
     set_ref = ref=>{ this.textarea = ref; };
@@ -487,7 +478,11 @@ export class Json extends Pure_component {
             {error: !this.state.correct});
         return <Tooltip title={this.props.tooltip}>
           <div className={classes}>
-            <textarea ref={this.set_ref}/>
+            <Json_editor
+                value={this.props.val}
+                on_change={this.on_cm_change}
+                setup={false}
+            />
           </div>
         </Tooltip>;
     }

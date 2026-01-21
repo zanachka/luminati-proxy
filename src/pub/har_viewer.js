@@ -1,6 +1,6 @@
 // LICENSE_CODE ZON ISC
 'use strict'; /*jslint react:true, es6:true*/
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import _ from 'lodash4';
 import $ from 'jquery';
 import {Route, Link, withRouter} from 'react-router-dom';
@@ -8,22 +8,19 @@ import {Waypoint} from 'react-waypoint';
 import classnames from 'classnames';
 import moment from 'moment';
 import React_tooltip from 'react-tooltip';
-import codemirror from 'codemirror/lib/codemirror';
 import Pure_component from '/www/util/pub/pure_component.js';
 import etask from '../../util/etask.js';
 import setdb from '../../util/setdb.js';
 import zutil from '../../util/util.js';
 import {trigger_types, action_types} from '../../util/rules_util.js';
 import Tooltip from './common/tooltip.js';
+import {Lang_editor, langs} from './common/editor/';
 import {Har_viewer, Pane_headers, Pane_info, JSON_viewer,
     Img_viewer} from '/www/util/pub/har.js';
 import {Tooltip_bytes} from './common.js';
-import {get_troubleshoot} from './util.js';
+import {get_troubleshoot, pretty_e} from './util.js';
 import ws from './ws.js';
 import {main as Api} from './api.js';
-import 'codemirror/lib/codemirror.css';
-import 'codemirror/mode/javascript/javascript';
-import 'codemirror/mode/htmlmixed/htmlmixed';
 
 const loader = {
     start: ()=>$('#har_viewer').addClass('waiting'),
@@ -54,39 +51,24 @@ const table_cols = [
     {title: 'Date', sort_by: 'timestamp', data: 'details.timestamp'},
 ];
 
-class Codemirror_wrapper extends Pure_component {
-    componentDidMount(){
-        this.cm = codemirror.fromTextArea(this.textarea, {
-            readOnly: true,
-            lineNumbers: true,
-        });
-        this.cm.setSize('100%', '100%');
-        let text = this.props.req.response.content.text||'';
-        try { text = JSON.stringify(JSON.parse(text), null, '\t'); }
-        catch(e){}
-        this.cm.doc.setValue(text);
-        this.set_ct();
-    }
-    componentDidUpdate(){
-        this.cm.doc.setValue(this.props.req.response.content.text||'');
-        this.set_ct();
-    }
-    set_ct(){
-        const content_type = this.props.req.details.content_type;
-        let mode;
-        if (!content_type||content_type=='xhr')
-            mode = 'javascript';
-        if (content_type=='html')
-            mode = 'htmlmixed';
-        this.cm.setOption('mode', mode);
-    }
-    set_textarea = ref=>{ this.textarea = ref; };
-    render(){
-        return <div className="codemirror_wrapper">
-          <textarea ref={this.set_textarea}/>
-        </div>;
-    }
-}
+const Codemirror_wrapper = props=>{
+    const [lang, set_lang] = useState(langs.json());
+    const [text, set_text] = useState('');
+    useEffect(()=>{
+        set_text(pretty_e(props.req.response.content.text));
+    }, [props.req.response.content.text]);
+    useEffect(()=>{
+        const resp_type = props.req.details.content_type;
+        if (!resp_type||resp_type=='xhr')
+            return void set_lang(langs.js());
+        if (resp_type=='html')
+            return void set_lang(langs.html());
+        set_lang(langs.json());
+    }, [props.req.details.content_type]);
+    return <div className="codemirror_wrapper">
+        <Lang_editor value={text} lang={lang} editable={false} />
+    </div>;
+};
 
 const is_json_str = str=>{
     let resp;

@@ -159,7 +159,6 @@ E.manager_fields = {
         +'messages to when BW limit is reached'},
     bw_th_webhook_url: {type: 'string', desc: 'URL to send webhook messages '
         +'to when BW limit threshold is reached'},
-    new_ui: {type: 'boolean', desc: 'Enable UiKit UI'},
     api_body_limit: {desc: 'Controls the maximum request body size',
         type: 'string'},
     api_parameter_limit: {type: 'number', desc: 'Controls the maximum number'

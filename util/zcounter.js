@@ -40,8 +40,7 @@ const get_vcounter = (metric_name, agg_srv, agg_tm, group = '')=>{
         return;
     const [vname, labels, glob] = params;
     // temp limit for initial testing, to be deleted later
-    if (labels.world !== 'stats' ||
-        !['clog_agent', 'svc'].includes(labels.app))
+    if (labels.world !== 'stats')
     {
         zcounter_to_vcounter.set(metric_key, null);
         return;
@@ -56,41 +55,12 @@ const get_vcounter = (metric_name, agg_srv, agg_tm, group = '')=>{
         zcounter_to_vcounter.set(metric_key, null);
     }
 };
+
 E.get_vcounter_params = (metric_name, extra_labels = {})=>{
-    let labels, ext, glob;
-    let world = 'stats';
-    const absolute = ['.', 'stats.', 'lum.', 'glob.']
-        .map(prefix=>metric_name.startsWith(prefix))
-        .includes(true);
-    if (absolute)
-    {
-        const parts = metric_name.startsWith('.')
-            ? metric_name.slice(1).split('.')
-            : metric_name.split('.');
-        if (['lum', 'stats', 'glob'].includes(parts[0]))
-        {
-            const first_after_dot = parts.shift();
-            if (first_after_dot === 'lum')
-                world = 'lum';
-            else if (first_after_dot === 'glob')
-                glob = true;
-        }
-        metric_name = parts.join('.');
-    }
-    if (metric_name.includes('/'))
-    {
-        const slash_parts = metric_name.split('/');
-        if (slash_parts.length !== 2)
-            return;
-        metric_name = slash_parts[1];
-        if (slash_parts[0] === 'glob')
-            glob = true;
-        else
-            ext = slash_parts[0];
-    }
+    metric_name = get_absolute_path(metric_name);
+    let labels, glob = false;
     const parts = metric_name.split('.');
-    if (['lum', 'stats'].includes(parts[0]))
-        world = parts.shift();
+    const world = parts.shift();
     if (world === 'lum')
     {
         glob = true;
@@ -105,19 +75,14 @@ E.get_vcounter_params = (metric_name, extra_labels = {})=>{
     }
     else
     {
-        if (parts[0] === 'glob')
-        {
-            parts.shift();
+        const [instance, app] = parts.splice(0, 2);
+        if (instance === 'glob')
             glob = true;
-        }
-        const instance = ext || conf.hostname;
-        const dash_instance = glob ? 'glob' : instance;
-        const app = absolute ? parts.shift() : conf.app;
         labels = {
             world,
-            instance,
+            instance: glob ? conf.hostname : instance,
             app,
-            dashboard_name: `stats.${dash_instance}.${app}.${parts.join('.')}`,
+            dashboard_name: metric_name,
         };
     }
     const vname = parts.join(':') || 'default';
@@ -550,35 +515,36 @@ const agg_mas_fn = {sum: agg_mas_sum_fn, sum_mono: agg_mas_sum_fn,
     min_level: agg_mas_level_fn, avg_level_eco: agg_mas_level_fn,
     sum_level_eco: agg_mas_level_fn, sum_mono_eco: agg_mas_sum_fn};
 
-let prepare = ()=>etask(function*zcounter_prepare(){
-    let get_counters_fn = Object.keys(cluster.workers).length
-        ? mas_get_counters : loc_get_counters;
-    let counters = yield get_counters_fn(true);
-    let prefix = `stats.${conf.hostname}.${conf.app}.`;
-    let res = {lum: [], stats: []};
-    for (let t in agg_mas_fn)
+const get_absolute_path = metric_key=>{
+    const prefix = `stats.${conf.hostname}.${conf.app}.`;
+    let path;
+    if (metric_key[0] === '.')
+        path = metric_key.slice(1).replace(/\//g, '.');
+    else
     {
-        let _type = counters[t];
-        let agg_fn = agg_mas_fn[t];
-        for (let key in _type)
+        const parts = metric_key.split('/');
+        if (parts.length === 1)
+            path = `${prefix}${metric_key}`;
+        else
+            path = `stats.${parts[0]}.${conf.app}.${parts[1]}`;
+    }
+    return path;
+};
+
+const prepare = ()=>etask(function*zcounter_prepare(){
+    const get_counters_fn = Object.keys(cluster.workers).length
+        ? mas_get_counters : loc_get_counters;
+    const counters = yield get_counters_fn(true);
+    const res = {lum: [], stats: []};
+    for (const agg_type in agg_mas_fn)
+    {
+        const _type = counters[agg_type];
+        const agg_fn = agg_mas_fn[agg_type];
+        for (const key in _type)
         {
-            let world = 'stats';
-            let c = _type[key], agg = agg_fn(key, c);
-            let path;
-            if (key[0]=='.')
-            {
-                path = key.slice(1).replace(/\//g, '.');
-                if (path.startsWith('lum.'))
-                    world = 'lum';
-            }
-            else
-            {
-                let parts = key.split('/');
-                if (parts.length==1)
-                    path = prefix+key;
-                else
-                    path = `stats.${parts[0]}.${conf.app}.${parts[1]}`;
-            }
+            const path = get_absolute_path(key);
+            const world = path.slice(0, path.indexOf('.'));
+            const c = _type[key], agg = agg_fn(key, c);
             if (!global_only_worlds.has(world) || path.includes('.glob.'))
             {
                 res[world].push({path, v: agg.v, w: agg.w,
@@ -589,13 +555,13 @@ let prepare = ()=>etask(function*zcounter_prepare(){
     return res;
 });
 
-let get_agg_counters = ()=>etask(function*zcounter_get_agg_counters(){
+const get_agg_counters = ()=>etask(function*zcounter_get_agg_counters(){
     if (cluster.isMaster)
         return yield mas_get_counters();
     return yield cluster_ipc.call_master('get_zcounters');
 });
 
-let handler_get = (req, res)=>etask(function*zcounter_handler_get(){
+const handler_get = (req, res)=>etask(function*zcounter_handler_get(){
     let counters = yield get_agg_counters();
     if (req.url.match(/^\/procinfo\/zcounter(\/|)$/))
         return void res.json({counters});

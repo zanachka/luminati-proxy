@@ -39,7 +39,7 @@
 - <a href="https://nodejs.org/en/download/">Node.js</a> 6+版
 
 ### Windows
-下载 <a href="https://brightdata.com/static/lpm/luminati-proxy-manager-v1.597.450-setup.exe">代理管理安装器</a>.
+下载 <a href="https://brightdata.com/static/lpm/luminati-proxy-manager-v1.601.281-setup.exe">代理管理安装器</a>.
 
 ### Linux/MacOS
 - 安装 Node.js 20.12.1版 (最好用x
@@ -229,7 +229,6 @@ Options:
                                    is reached                           [string]
       --bw_th_webhook_url          URL to send webhook messages to when BW limit
                                    threshold is reached                 [string]
-      --new_ui                     Enable UiKit UI    [boolean] [default: false]
       --api_body_limit             Controls the maximum request body size
                                                        [string] [default: "2mb"]
       --api_parameter_limit        Controls the maximum number of parameters

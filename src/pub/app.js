@@ -11,11 +11,9 @@ import {createGlobalStyle} from 'styled-components';
 import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'flag-icons/css/flag-icons.css';
-import 'es6-shim';
 import setdb from '../../util/setdb.js';
 import etask from '../../util/etask.js';
 import zurl from '../../util/url.js';
-// import {App_new} from '../pub2/app.js';
 import Proxy_edit from './proxy_edit/index.js';
 import Howto from './howto.js';
 import Nav from './nav.js';
@@ -384,47 +382,11 @@ const Validator = ({zagent})=>{
     return <React.Fragment></React.Fragment>;
 };
 
-class Root extends Pure_component {
-    constructor(props){
-        super(props);
-        this.state = {
-            use_new_ui: false,
-        };
-    }
-    componentDidMount(){
-        const url_o = zurl.parse(document.location.href);
-        const qs_o = zurl.qs_parse((url_o.search||'').substr(1));
-        if (+qs_o.new_ui && !this.state.use_new_ui)
-        {
-            console.log('qs ui switch');
-            this.setState({use_new_ui: true});
-        }
-        this.rm_change_ui_app_listener = CP_ipc.listen('ui_state', msg=>{
-            console.log('CP ipc ui switch');
-            this.handle_ui_state_event(msg);
-        });
-        this.setdb_on('head.settings', ({new_ui}={})=>{
-            if (!new_ui || this.state.use_new_ui)
-                return;
-            console.log('settings ui switch');
-            this.handle_ui_state_event({new_ui});
-        });
-    }
-    willUnmount(){
-        if (typeof this.rm_change_ui_app_listener == 'function')
-            this.rm_change_ui_app_listener();
-    }
-    handle_ui_state_event = ({new_ui})=>
-        this.setState({use_new_ui: !!+new_ui});
-    render(){
-        // let app_comp = this.state.use_new_ui ? App_new : App;
-        let app_comp = App;
-        return <BrowserRouter>
-            <Switch>
-                <Route path="/" component={app_comp}/>
-            </Switch>
-        </BrowserRouter>;
-    }
-}
+const Root = ()=>
+    <BrowserRouter>
+      <Switch>
+        <Route path="/" component={App}/>
+      </Switch>
+    </BrowserRouter>;
 
 createRoot(document.getElementById('react_root')).render(<Root/>);

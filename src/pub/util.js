@@ -324,3 +324,10 @@ export const in_cp = ()=>window.location!==window.parent.location;
 export const with_zagent_fn = zagent=>Comp=>function with_zagent(props){
     return <Comp {...props} zagent={zagent} />;
 };
+
+export const to_sentence = text=>_.capitalize(_.startCase(text).toLowerCase());
+
+export const pretty_e = text=>{
+    try { return JSON.stringify(JSON.parse(text), null, '\t'); }
+    catch(e){ return text; }
+};

@@ -11,10 +11,9 @@ module.exports = {
     entry: {
         app: './pub/app.js',
         vendor: ['jquery', 'lodash4', 'moment', 'bootstrap',
-        'bootstrap/dist/css/bootstrap.css', 'codemirror/lib/codemirror',
-            'codemirror/lib/codemirror.css', 'react-bootstrap', 'react',
-            'codemirror/mode/javascript/javascript', 'react-dom',
-            'regenerator-runtime', 'es6-shim', 'animate.css'],
+        'bootstrap/dist/css/bootstrap.css',
+            'react-bootstrap', 'react',
+            'react-dom', 'animate.css'],
     },
     output: {
         path: `${__dirname}/bin/pub`,
@@ -48,11 +47,6 @@ module.exports = {
                 use: ['babel-loader'],
             },
             {
-                test: /src[\\/]pub2[\\/].+\.js$/,
-                exclude: /node_modules/,
-                use: ['babel-loader'],
-            },
-            {
                 test: /www[\\/].+\.js$/,
                 exclude: /node_modules/,
                 use: ['hutil-loader', 'babel-loader'],
@@ -78,6 +72,7 @@ module.exports = {
     },
     resolve: {
         modules: [__dirname, 'node_modules'],
+        mainFiles: ['index'],
         alias: {
             '/util': 'util/',
             jquery: 'jquery/src/jquery.js',

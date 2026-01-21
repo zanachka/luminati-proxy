@@ -1,7 +1,6 @@
 // LICENSE_CODE ZON ISC
 'use strict'; /*jslint browser:true, react:true, es6:true*/
 import _ from 'lodash4';
-import {EventTarget} from 'event-target-shim';
 import setdb from '../../util/setdb.js';
 import zws from '../../util/ws.js';
 import {get_location_port} from './util.js';

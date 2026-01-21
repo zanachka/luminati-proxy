@@ -1,9 +1,12 @@
 @import (reference) 'common.less';
+
 .config {
     height: 100%;
     font-size: 14px;
     padding: 0 15px;
-    .btn { width: 140px; }
+    .btn {
+        width: 140px;
+    }
     .nav_buttons {
         position: absolute;
         z-index: 10;
@@ -11,31 +14,47 @@
         top: 15px;
         white-space: nowrap;
         flex: 1;
-        .btn:last-child { margin-right: 0; }
+        .btn:last-child {
+            margin-right: 0;
+        }
     }
     .code_panel {
+        min-height: 0;
+        overflow: hidden;
         .panel_body {
             background-color: @light_grey;
             position: relative;
             padding: 1px;
-            .CodeMirror {
-                flex: auto;
-                display: flex;
-                flex-direction: column;
-                .CodeMirror-scroll { flex: auto; }
-                &.cm-s-default {
+            min-height: 0;
+            overflow: hidden;
+            .editor_container {
+                flex: 1;
+                min-height: 0;
+                overflow: auto;
+                background-color: @light_grey;
+                padding: 5px;
+                textarea,
+                pre {
+                    font-family: "Fira code", "Fira Mono", Consolas, monospace !important;
+                    font-size: 14px !important;
+                    background-color: transparent !important;
+                }
+                .cm-lpm-tooltip {
                     padding: 5px;
-                    background-color: @light_grey;
                 }
             }
-            .nav_buttons { right: 25px; }
+            .nav_buttons {
+                right: 25px;
+            }
         }
     }
     .code_panel.editable {
         border-color: @first_color;
         .panel_body {
             background-color: transparent;
-            .CodeMirror.cm-s-default { background-color: white; }
+            .editor_container {
+                background-color: white;
+            }
         }
     }
 }

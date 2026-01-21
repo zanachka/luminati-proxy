@@ -3,10 +3,10 @@
 import 'prismjs/themes/prism.css';
 import React from 'react';
 import {withRouter} from 'react-router-dom';
-import prism from 'prismjs';
 import instructions from './instructions.js';
 import Proxy_tester from './proxy_tester.js';
 import {Code, with_www_api, Warning} from './common.js';
+import {langs} from './common/editor/';
 import {Nav_tabs, Nav_tab} from './common/nav_tabs.js';
 import {T} from './common/i18n.js';
 import Pure_component from '/www/util/pub/pure_component.js';
@@ -122,21 +122,23 @@ class Code_instructions extends Pure_component {
               <Lang_btn active={lang==props.lang} {...props}/>
             </span>;
         const to_copy = instructions.code(port, lpm_token, hostname)[lang];
-        const code = prism.highlight(to_copy, prism.languages.clike);
+        const code = langs.prism.highlight(to_copy, lang);
         const api_url = this.props.www_help+'/hc/en-us/articles/13595498290065'
             +'-API';
         return <div className="code_instructions">
               <div className="options">
                 <Lang_btn_clickable lang="shell" text="Shell"/>
                 <Lang_btn_clickable lang="node" text="Node.js"/>
+                <Lang_btn_clickable lang="puppeteer" text="Puppeteer"/>
+                <Lang_btn_clickable lang="playwright" text="Playwright"/>
                 <Lang_btn_clickable lang="java" text="Java"/>
                 <Lang_btn_clickable lang="csharp" text="C#"/>
-                <Lang_btn_clickable lang="vb" text="VB"/>
                 <Lang_btn_clickable lang="php" text="PHP"/>
                 <Lang_btn_clickable lang="python" text="Python"/>
-                <Lang_btn_clickable lang="ruby" text="Ruby"/>
-                <Lang_btn_clickable lang="perl" text="Perl"/>
-                <Lang_btn_clickable lang="nim" text="Nim"/>
+                <Lang_btn_clickable lang="scrapy" text="Scrapy"/>
+                <Lang_btn_clickable lang="ts" text="TypeScript"/>
+                <Lang_btn_clickable lang="go" text="GoLang"/>
+                <Lang_btn_clickable lang="rust" text="Rust"/>
               </div>
               <div className="well instructions_well">
                 <pre>
@@ -174,9 +176,10 @@ class Browser_instructions extends Pure_component {
                 <select value={browser} onChange={this.browser_changed}>
                   <option value="chrome_win">Chrome Windows</option>
                   <option value="chrome_mac">Chrome Mac</option>
-                  <option value="ie">Internet Explorer</option>
                   <option value="firefox">Firefox</option>
                   <option value="safari">Safari</option>
+                  <option value="brave">Brave</option>
+                  <option value="arc">Arc</option>
                 </select>
               </div>
               <div className="instructions_well">

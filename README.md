@@ -36,7 +36,7 @@ Please report issues or bugs to your account manager or from our [help center](h
 ## Installation
 
 ### Windows
-Download the [Proxy Manager installer](https://github.com/luminati-io/luminati-proxy/releases/download/v1.597.450/luminati-proxy-manager-v1.597.450-setup.exe)
+Download the [Proxy Manager installer](https://github.com/luminati-io/luminati-proxy/releases/download/v1.601.281/luminati-proxy-manager-v1.601.281-setup.exe)
 
 ### Linux/MacOS - Install script
 - Run the setup script to install
@@ -281,7 +281,6 @@ Options:
                                    is reached                           [string]
       --bw_th_webhook_url          URL to send webhook messages to when BW limit
                                    threshold is reached                 [string]
-      --new_ui                     Enable UiKit UI    [boolean] [default: false]
       --api_body_limit             Controls the maximum request body size
                                                        [string] [default: "2mb"]
       --api_parameter_limit        Controls the maximum number of parameters

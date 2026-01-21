@@ -6,14 +6,12 @@ import Pure_component from '/www/util/pub/pure_component.js';
 import React_tooltip from 'react-tooltip';
 import {Alert as RB_Alert} from 'react-bootstrap';
 import classnames from 'classnames';
-import codemirror from 'codemirror/lib/codemirror';
-import 'codemirror/mode/javascript/javascript';
-import 'codemirror/lib/codemirror.css';
 import $ from 'jquery';
 import bsm from '/www/util/pub/bootstrap_methods.js';
 import conv from '../../util/conv.js';
 import date from '../../util/date.js';
 import presets from './common/presets.js';
+import {Js_editor} from './common/editor/';
 import {Pins, Select_status, Select_number, Yes_no, Regex, Json, Textarea,
     Typeahead_wrapper, Input, Select, Url_input} from './common/controls.js';
 import Tooltip from './common/tooltip.js';
@@ -114,6 +112,36 @@ export class Warning extends Pure_component {
         </Tooltip>;
     }
 }
+
+export const Info = ({id, text, children})=>{
+    const [dismissed, set_dismissed] = useState(()=>{
+        if (!id)
+            return false;
+        const dismissed_infos = JSON.parse(
+            window.localStorage.getItem('dismissed-infos'))||{};
+        return dismissed_infos[id];
+    });
+    const dismiss = useCallback(()=>{
+        if (!id)
+            return;
+        const dismissed_infos = JSON.parse(
+            window.localStorage.getItem('dismissed-infos'))||{};
+        dismissed_infos[id] = true;
+        window.localStorage.setItem('dismissed-infos',
+            JSON.stringify(dismissed_infos));
+        set_dismissed(true);
+    }, [id]);
+    if (dismissed)
+        return null;
+    const content = text||children;
+    return <div className="info_box">
+        <div className="info_content">
+            {content}
+        </div>
+        {id && <i onClick={dismiss}
+            className="fa fa-times info_close"/>}
+    </div>;
+};
 
 export const Loader = ({show})=>{
     if (!show)
@@ -310,37 +338,11 @@ export class Copy_btn extends Pure_component {
     }
 }
 
-export class Cm_wrapper extends Pure_component {
-    componentDidMount(){
-        const opt = {mode: 'javascript'};
-        if (this.props.readonly)
-            opt.readOnly = 'nocursor';
-        this.cm = codemirror.fromTextArea(this.textarea, opt);
-        this.cm.on('change', this.on_cm_change);
-        this.cm.setSize('100%', '100%');
-        this.cm.doc.setValue(this.props.val||'');
-    }
-    componentDidUpdate(prev_props){
-        if (prev_props.val!=this.props.val &&
-            this.cm.doc.getValue()!=this.props.val)
-        {
-            this.cm.doc.setValue(this.props.val||'');
-        }
-    }
-    on_cm_change = cm=>{
-        const new_val = cm.doc.getValue();
-        if (new_val==this.props.val)
-            return;
-        this.props.on_change(new_val);
-    };
-    set_ref = ref=>{ this.textarea = ref; };
-    render(){
-        return <div className="code_mirror_wrapper">
-          <Copy_btn val={this.props.val}/>
-          <textarea ref={this.set_ref}/>
-        </div>;
-    }
-}
+export const Cm_wrapper = ({val, readonly, on_change})=>
+<div className="code_mirror_wrapper">
+    <Copy_btn val={val}/>
+    <Js_editor value={val} editable={!readonly} on_change={on_change} />
+</div>;
 
 export const Faq_link = with_www_api(props=>{
     const click = ()=>{
